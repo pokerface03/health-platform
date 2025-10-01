@@ -1,0 +1,53 @@
+
+services:
+  vitals-db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb
+    environment:
+      POSTGRES_USER: health
+      POSTGRES_PASSWORD: health
+      POSTGRES_DB: vitalsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/vitalsdb/data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d/
+
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  keycloak-db:
+    image: postgres:16
+    container_name: keycloak-db
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+    ports:
+      - "5433:5432"
+    volumes:
+      - /home/fofi/postgresql/keycloak/data:/var/lib/postgresql/data
+
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.4
+    command: start-dev
+    container_name: keycloak
+    environment:
+      - KC_DB_URL=jdbc:postgresql://192.168.1.114:5433/keycloak
+      - KC_DB=postgres
+      - KC_DB_PASSWORD=keycloak
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    network_mode: host
+    depends_on:
+      - keycloak-db
+
+
