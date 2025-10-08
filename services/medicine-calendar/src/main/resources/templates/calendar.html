@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Calendar</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; }
+
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+        .top-nav h1 { color:  #764ba2; margin: 0; }
+
+        .btn { padding: 10px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 3px; display: inline-block; border: none; cursor: pointer; font-size: 14px; }
+        .btn:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; font-size: 11px; padding: 3px 8px; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+
+        .nav { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
+        .week-header { text-align: center; font-size: 20px; color: #333; margin: 20px 0; }
+
+        .calendar { margin: 30px 0; overflow-x: auto; border-radius: 5px; }
+        .calendar table { width: 100%; border-collapse: collapse; }
+        .calendar th { background: #667eea; color: white; text-align: center; padding: 12px 8px; font-size: 13px; border: 1px solid #0056b3; }
+        .calendar td {background: #dde2f8 ; border: 1px solid #ddd; padding: 8px; vertical-align: top; min-width: 70px; height: 70px; font-size: 12px; }
+        .calendar .day-col { background: #f8f9fa; font-weight: bold; color: #667eea; text-align: left; width: 130px; padding: 10px; font-size: 13px; }
+        .calendar .today-row .day-col { background: #fff3cd; }
+
+        .medicine-note { margin: 2px 0; padding: 2px 0; line-height: 1.4; color: #333; }
+        .medicine-note strong { display: block; color: #007bff; }
+        .medicine-note small { color: #666; font-size: 10px; }
+
+        .add-form { background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 30px 0; border: 1px solid #667eea;}
+        .add-form h2 { margin-bottom: 15px; color: #667eea; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 5px; font-weight: bold; font-size: 13px; }
+        .form-group input, .form-group textarea { padding: 8px; border: 1px solid #ddd; border-radius: 3px; font-size: 13px; }
+
+        .medicine-list { margin-top: 30px; overflow-x: auto; overflow-y: visible;}
+        .medicine-list table { width: 100%; border-collapse: collapse; }
+        .medicine-list h2 { margin-bottom: 15px; color: #667eea;}
+        .medicine-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 3px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;       /* allow content to wrap on small screens */
+        }
+
+        .medicine-info {
+            flex: 1 1 auto;        /* allow info to grow/shrink naturally */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-nav">
+            <h1>Medicine Calendar 💊 </h1>
+            <a href="/your-page" class="btn">Back</a>
+        </div>
+
+        <div class="nav">
+            <a th:href="@{/calendar/{userId}(userId=${userId}, week=${weekOffset - 1})}" class="btn btn-secondary">← Previous Week</a>
+            <a th:href="@{/calendar/{userId}(userId=${userId})}" class="btn btn-secondary">Current Week</a>
+            <a th:href="@{/calendar/{userId}(userId=${userId}, week=${weekOffset + 1})}" class="btn btn-secondary">Next Week →</a>
+        </div>
+
+        <div class="week-header" th:text="${weekRange}"></div>
+
+        <div class="calendar">
+            <table>
+                <thead>
+                <tr>
+                    <th>Day</th>
+                    <th th:each="timeSlot : ${timeSlots}" th:text="${timeSlot}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="day : ${weekDays}" th:classappend="${day.equals(today)} ? 'today-row' : ''">
+                    <td class="day-col">
+                        <strong th:text="${#temporals.format(day, 'EEEE')}"></strong><br>
+                        <span th:text="${#temporals.format(day, 'dd/MM/yyyy')}"></span>
+                    </td>
+                    <td th:each="timeSlot : ${timeSlots}">
+                        <div th:each="medicine : ${medicineSchedule.get(day).get(timeSlot)}" class="medicine-note">
+                            <strong th:text="${medicine.name}"></strong>
+                            <small th:text="${medicine.dosage}"></small>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="add-form">
+            <h2>Add New Medicine</h2>
+            <form th:action="@{/calendar/{userId}/add(userId=${userId}, week=${weekOffset})}" method="post">
+                <input type="hidden" name="id" th:value="${medicine.id}"/>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Medicine Name:</label>
+                        <input type="text" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dosage:</label>
+                        <input type="text" name="dosage" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Frequency:</label>
+                        <input type="text" name="frequency" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Time:</label>
+                        <input type="time" name="time" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date:</label>
+                        <input type="date" name="startDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>End Date (optional):</label>
+                        <input type="date" name="endDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes:</label>
+                        <textarea name="notes" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Add Medicine</button>
+            </form>
+        </div>
+
+        <div class="medicine-list">
+            <h2>All Active Medicines</h2>
+            <div th:if="${#lists.isEmpty(allMedicines)}">
+                <p>No medicines added yet.</p>
+            </div>
+            <div th:each="medicine : ${allMedicines}" class="medicine-item">
+                <div class="medicine-info">
+                    <strong th:text="${medicine.name}"></strong> - <span th:text="${medicine.dosage}"></span><br>
+                    <small>
+                        <span th:text="${medicine.frequency}"></span> at
+                        <span th:text="${#temporals.format(medicine.time, 'HH:mm')}"></span> |
+                        From <span th:text="${#temporals.format(medicine.start_date, 'dd/MM/yyyy')}"></span>
+                        <span th:if="${medicine.end_date != null}">
+                                to <span th:text="${#temporals.format(medicine.end_date, 'dd/MM/yyyy')}"></span>
+                            </span>
+                    </small>
+                    <br th:if="${medicine.notes != null and !medicine.notes.isEmpty()}">
+                    <small th:if="${medicine.notes != null and !medicine.notes.isEmpty()}">
+                        Notes: <span th:text="${medicine.notes}"></span>
+                    </small>
+                </div>
+                <form th:action="@{'/calendar/' + ${userId} + '/delete/' + ${medicine.id} + '(week=' + ${weekOffset} + ')'}"
+                      method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -7,6 +7,7 @@
         <option value="$PROJECT_DIR$/services/vitals-subscriber/pom.xml" />
         <option value="$PROJECT_DIR$/services/vitals-publisher/publisher/pom.xml" />
         <option value="$PROJECT_DIR$/services/vitals-publisher/pom.xml" />
+        <option value="$PROJECT_DIR$/services/medicine-calendar/pom.xml" />
         <option value="$PROJECT_DIR$/mosquitto/pom.xml" />
       </list>
     </option>

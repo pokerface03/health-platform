@@ -16,6 +16,13 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="publisher" />
+        <module name="vitals-publisher" />
+        <module name="medicine-calendar" />
+      </profile>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -24,7 +31,9 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="medicine-calendar" options="-parameters" />
       <module name="publisher" options="-parameters" />
+      <module name="vitals-publisher" options="-parameters" />
       <module name="vitals-subscriber" options="-parameters" />
     </option>
   </component>

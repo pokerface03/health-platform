@@ -4,6 +4,7 @@ import com.vitals.subscriber.record.*;
 import com.vitals.subscriber.dao.VitalDao;
 import jakarta.annotation.PostConstruct;
 import org.eclipse.paho.client.mqttv3.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -13,6 +14,7 @@ import java.time.Instant;
 @Service
 public class MqttSubscriberService implements MqttCallback {
 
+    @Autowired
     private final VitalDao vitalDao;
 
 
@@ -20,7 +22,7 @@ public class MqttSubscriberService implements MqttCallback {
         this.vitalDao = vitalDao;
     }
 
-    @PostConstruct
+   @PostConstruct
     private void connectAndSubscribe() throws MqttException {
 
             MqttClient client = new MqttClient("tcp://localhost:1883", "VitalsSubscriberService");

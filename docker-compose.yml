@@ -11,7 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - ./db/vitalsdb/data:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d/
+      - ./db/init/vitals:/docker-entrypoint-initdb.d/
 
 
   mqtt-broker:
@@ -22,6 +22,20 @@ services:
       - "9001:9001"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  medicinedb:
+    image: postgres:14-alpine
+    container_name: medicine-db
+    environment:
+      POSTGRES_PASSWORD: calendar
+      POSTGRES_USER: calendar
+      POSTGRES_DB: medicinedb
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./db/medicinedb/data:/var/lib/postgresql/data
+      - ./db/init/medicine:/docker-entrypoint-initdb.d/
+
 
   keycloak-db:
     image: postgres:16
