@@ -16,14 +16,19 @@ public class MqttSubscriberService implements MqttCallback {
 
     @Autowired
     private final VitalDao vitalDao;
+    private String UserId;
 
 
-    public MqttSubscriberService(VitalDao vitalDao){
-        this.vitalDao = vitalDao;
+    public MqttSubscriberService(VitalDao vitalDao) {
+        this.vitalDao =  vitalDao;
     }
 
-   @PostConstruct
-    private void connectAndSubscribe() throws MqttException {
+    public void setUserId(String userId) {
+        this.UserId = userId;
+    }
+
+   //@PostConstruct
+    public void connectAndSubscribe() throws MqttException {
 
             MqttClient client = new MqttClient("tcp://localhost:1883", "VitalsSubscriberService");
             client.setCallback(this);
@@ -52,14 +57,15 @@ public class MqttSubscriberService implements MqttCallback {
             Double value = Double.parseDouble(parts[1]);
 
             String[] topicParts = topic.split("/");
-            String userId = topicParts[1];      // e.g. patient01
-            String metricName = topicParts[2];  // e.g. hr
+            String userId = this.UserId;      // e.g. patient01
+            String metricName = topicParts[1];  // e.g. hr
 
-            Vital vital = new Vital(null, userId, ts, metricName, value);
+            if(userId != null) {
+                Vital vital = new Vital(null, userId, ts, metricName, value);
 
-            vitalDao.addVital(vital);
-            System.out.println("📥 Saved: " + userId + "/" + metricName + " = " + value);
-
+                vitalDao.addVital(vital);
+                System.out.println("📥 Saved: " + userId + "/" + metricName + " = " + value);
+            }
     }
 
     @Override

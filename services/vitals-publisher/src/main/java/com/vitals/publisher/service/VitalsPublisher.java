@@ -55,17 +55,18 @@ public class VitalsPublisher {
             double weight = 70 + random.nextDouble();
 
             // Publish to topics
-            /*publish("vitals/"+"hr", now + "," + hr);
+            publish("vitals/"+"hr", now + "," + hr);
             publish( "vitals/"+"bp_sys", now + "," + bpSys);
             publish("vitals/"+"bp_dia", now + "," + bpDia);
             publish( "vitals/"+"glucose", now + "," + glucose);
-            publish("vitals/"+"weight", now + "," + weight);*/
+            publish("vitals/"+"weight", now + "," + weight);
 
+            /*
             publish("vitals/" + patientId + "/hr", now + "," + hr);
             publish("vitals/" + patientId + "/bp_sys", now + "," + bpSys);
             publish("vitals/" + patientId + "/bp_dia", now + "," + bpDia);
             publish("vitals/" + patientId + "/glucose", now + "," + glucose);
-            publish("vitals/" + patientId + "/weight", now + "," + weight);
+            publish("vitals/" + patientId + "/weight", now + "," + weight);*/
 
             System.out.println("📤 Published vitals at " + now);
 

@@ -1,8 +1,9 @@
 // Configuration
-const API_BASE_URL = 'localhost:8082/vitals';
+const API_BASE_URL = 'http://localhost:8082/vitals';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 const HOURS_TO_FETCH = 24;
 
+const token = localStorage.getItem("keycloakToken");
 const userInfo = keycloak.loadUserInfo();
 const currentUserId = userInfo.sub;
 let charts = {};
@@ -14,11 +15,25 @@ class VitalsAPIClient {
         this.baseUrl = baseUrl;
     }
 
-    async getLatestVitals(userId) {
+    async getUserId() {
+            try {
+                const response = await fetch(`${this.baseUrl}`,{
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching latest vitals:', error);
+                throw error;
+            }
+    }
+    async getLatestVitals() {
         try {
             const response = await fetch(`${this.baseUrl}/latest`,{
                 headers: {
-                    'Authorization': 'Bearer ' + keycloak.token
+                    'Authorization': 'Bearer ' + token
                 }
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -29,7 +44,7 @@ class VitalsAPIClient {
         }
     }
 
-    async getVitalsByMetric(userId, metricName, hours = 24) {
+    async getVitalsByMetric(metricName, hours = 24) {
         try {
             const now = new Date();
             const from = new Date(now.getTime() - hours * 60 * 60 * 1000);
@@ -41,7 +56,7 @@ class VitalsAPIClient {
 
             const response = await fetch(`${this.baseUrl}/${metricName}?${params}`,{
                 headers: {
-                     'Authorization': 'Bearer ' + keycloak.token
+                     'Authorization': 'Bearer ' + token
                 }
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -54,11 +69,7 @@ class VitalsAPIClient {
 
     async healthCheck() {
         try {
-            const response = await fetch(`${this.baseUrl}/health`,{
-                 headers: {
-                    'Authorization': 'Bearer ' + keycloak.token
-                 }
-            });
+            const response = await fetch(`${this.baseUrl}/health`);
             return response.ok;
         } catch (error) {
             console.error('Health check failed:', error);
@@ -96,7 +107,7 @@ function showError(message) {
 // Load latest vitals and update stat cards
 async function loadLatestVitals() {
     try {
-        const vitals = await apiClient.getLatestVitals(currentUserId);
+        const vitals = await apiClient.getLatestVitals();
 
         // Create a map for easy lookup
         const vitalsMap = {};
@@ -129,7 +140,7 @@ async function loadLatestVitals() {
 // Create a chart for a specific metric
 async function createChart(canvasId, metricName, label, color) {
     try {
-        const data = await apiClient.getVitalsByMetric(currentUserId, metricName, HOURS_TO_FETCH);
+        const data = await apiClient.getVitalsByMetric(metricName, HOURS_TO_FETCH);
 
         const labels = data.map(item => {
             const date = new Date(item.timestamp);
@@ -199,8 +210,8 @@ async function createChart(canvasId, metricName, label, color) {
 // Create blood pressure chart (dual line)
 async function createBPChart() {
     try {
-        const sysData = await apiClient.getVitalsByMetric(currentUserId, 'bp_sys', HOURS_TO_FETCH);
-        const diaData = await apiClient.getVitalsByMetric(currentUserId, 'bp_dia', HOURS_TO_FETCH);
+        const sysData = await apiClient.getVitalsByMetric('bp_sys', HOURS_TO_FETCH);
+        const diaData = await apiClient.getVitalsByMetric('bp_dia', HOURS_TO_FETCH);
 
         const labels = sysData.map(item => {
             const date = new Date(item.timestamp);
@@ -285,6 +296,7 @@ async function loadAllCharts() {
 async function refreshAllData() {
     await loadLatestVitals();
     await loadAllCharts();
+    await apiClient.getUserId();
 }
 
 // Initialize the dashboard
