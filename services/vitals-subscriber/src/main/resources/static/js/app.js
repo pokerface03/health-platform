@@ -4,8 +4,7 @@ const REFRESH_INTERVAL = 30000; // 30 seconds
 const HOURS_TO_FETCH = 24;
 
 const token = localStorage.getItem("keycloakToken");
-const userInfo = keycloak.loadUserInfo();
-const currentUserId = userInfo.sub;
+
 let charts = {};
 let refreshTimer = null;
 
@@ -23,9 +22,9 @@ class VitalsAPIClient {
                     }
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
+
             } catch (error) {
-                console.error('Error fetching latest vitals:', error);
+                console.error('Error with get user Id:', error);
                 throw error;
             }
     }
@@ -69,7 +68,11 @@ class VitalsAPIClient {
 
     async healthCheck() {
         try {
-            const response = await fetch(`${this.baseUrl}/health`);
+            const response = await fetch(`${this.baseUrl}/health`,{
+              headers: {
+                'Authorization': 'Bearer ' + token
+              }
+            });
             return response.ok;
         } catch (error) {
             console.error('Health check failed:', error);
@@ -302,7 +305,7 @@ async function refreshAllData() {
 // Initialize the dashboard
 async function init() {
 
-   document.getElementById('calendarBtn').href = `http://localhost:8083/calendar/${currentUserId}`;
+   //document.getElementById('calendarBtn').href = `http://localhost:8083/calendar/${currentUserId}`;
 
    const isHealthy = await apiClient.healthCheck();
    updateStatus(isHealthy);

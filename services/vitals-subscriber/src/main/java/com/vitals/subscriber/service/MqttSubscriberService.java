@@ -14,7 +14,7 @@ import java.time.Instant;
 @Service
 public class MqttSubscriberService implements MqttCallback {
 
-    @Autowired
+    //@Autowired
     private final VitalDao vitalDao;
     private String UserId;
 

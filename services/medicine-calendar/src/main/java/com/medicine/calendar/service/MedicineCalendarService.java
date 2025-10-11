@@ -12,7 +12,7 @@ import java.util.Optional;
 @Service
 public class MedicineCalendarService {
 
-    @Autowired
+    //@Autowired
     private final MedicineDao medicineDao;
 
     public MedicineCalendarService(MedicineDao medicineDao) {

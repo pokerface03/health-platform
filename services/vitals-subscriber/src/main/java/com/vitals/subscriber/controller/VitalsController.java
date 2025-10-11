@@ -24,7 +24,7 @@ import java.util.Map;
 @RequestMapping("/vitals")
 public class VitalsController {
 
-    @Autowired
+    //@Autowired
     private final VitalDao vitalDao;
     private final MqttSubscriberService mqttSubscriberService;
 
@@ -35,10 +35,10 @@ public class VitalsController {
     }
 
     @GetMapping("")
-    ResponseEntity<Response> getUserId(@ AuthenticationPrincipal Jwt jwt) throws MqttException {
+    void getUserId(@ AuthenticationPrincipal Jwt jwt) throws MqttException {
         String userId = jwt.getSubject();
         mqttSubscriberService.setUserId(userId);
-        return null;
+
     }
 
     @GetMapping("/latest")

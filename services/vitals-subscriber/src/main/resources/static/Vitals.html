@@ -22,8 +22,14 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+
+
         }
 
+        .top{
+            display: flex;
+            justify-content: space-between;
+        }
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -47,11 +53,9 @@
             font-size: 2em;
         }
 
-        .btn { padding: 10px 15px; background: #764ba2; color: white; text-decoration: none; border-radius: 3px; display: inline-block; border: none; cursor: pointer; font-size: 14px; }
+        .btn { padding: 10px 15px; background: #764ba2; color: white; text-decoration: none; border-radius: 8px; display: inline-block; border: none; cursor: pointer; font-size: 14px; }
         .calendar-btn {
-            background: #764ba2;
-            margin-top: 0px;
-            font-size: 1.1em;
+            font-size: 1em;
         }
 
         .status {
@@ -167,7 +171,11 @@
     </style>
 </head>
 <body>
-    <div id="container" class="container">
+    <div class="top">
+        <button class="btn log-out-btn" onclick="logout()">LOG OUT</button>
+        <button id="calendarBtn" class="btn calendar-btn" href="#">Medicine Calendar</button>
+    </div>
+    <div id="container"  class="container">
         <div class="header">
             <div>
                 <h1>🏥 Vitals Monitor </h1>
@@ -180,7 +188,6 @@
                     <button class="refresh-btn" onclick="refreshAllData()">🔄 Refresh</button>
                 </div>
                 <div>
-                    <a id="calendarBtn" class="btn calendar-btn" href="#">Medicine Calendar →</a>
                 </div>
             </div>
         </div>

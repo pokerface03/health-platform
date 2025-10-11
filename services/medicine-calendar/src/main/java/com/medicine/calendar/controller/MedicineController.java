@@ -2,11 +2,11 @@ package com.medicine.calendar.controller;
 
 import com.medicine.calendar.record.Medicine;
 import com.medicine.calendar.service.MedicineCalendarService;
-import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
@@ -15,20 +15,24 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-//@Validated
-@Controller
+@RestController
 @RequestMapping("/calendar")
+
 public class MedicineController {
 
-    @Autowired
+    //@Autowired
     private final MedicineCalendarService medicineCalendarService;
 
     public MedicineController(MedicineCalendarService medicineCalendarService) {
         this.medicineCalendarService = medicineCalendarService;
     }
 
-    @GetMapping("/{userId}")
-    public String calendar(@PathVariable String userId, @RequestParam(defaultValue = "0") int week, Model model) {
+    @GetMapping("")
+    public ResponseEntity<CalendarResponse> getCalendar(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") int week) {
+
+        String userId = jwt.getSubject();
         LocalDate today = LocalDate.now();
 
         // Calculate week start (Monday)
@@ -53,66 +57,95 @@ public class MedicineController {
 
         // Get all medicines
         List<Medicine> allMedicines = medicineCalendarService.getAllMedicines(userId);
+
         // Build schedule: Map<LocalDate, Map<String, List<Medicine>>>
-        Map<LocalDate, Map<String, List<Medicine>>> medicineSchedule = new HashMap<>();
+        Map<String, Map<String, List<Medicine>>> medicineSchedule = new HashMap<>();
 
         for (LocalDate day : weekDays) {
             Map<String, List<Medicine>> daySchedule = new HashMap<>();
             for (String timeSlot : timeSlots) {
                 daySchedule.put(timeSlot, new ArrayList<>());
             }
-            medicineSchedule.put(day, daySchedule);
+            medicineSchedule.put(day.toString(), daySchedule);
         }
 
         // Populate schedule
         for (Medicine medicine : allMedicines) {
             for (LocalDate day : weekDays) {
-                if (! medicine.start_date().isAfter(day) &&
-                        (medicine.end_date() == null ||! medicine.end_date().isBefore(day))) {
+                if (!medicine.start_date().isAfter(day) &&
+                        (medicine.end_date() == null || !medicine.end_date().isBefore(day))) {
                     String hourSlot = String.format("%02d:00", medicine.time().getHour());
-                    medicineSchedule.get(day).get(hourSlot).add(medicine);
+                    medicineSchedule.get(day.toString()).get(hourSlot).add(medicine);
                 }
             }
         }
 
-        model.addAttribute("userId", userId);
-        model.addAttribute("weekDays", weekDays);
-        model.addAttribute("weekRange", weekRange);
-        model.addAttribute("timeSlots", timeSlots);
-        model.addAttribute("medicineSchedule", medicineSchedule);
-        model.addAttribute("weekOffset", week);
-        model.addAttribute("today", today);
-        model.addAttribute("allMedicines", allMedicines);
-        model.addAttribute("medicine", new Medicine(null, "userId", "", "", "", null, LocalDate.now(), null, ""));
+        CalendarResponse response = new CalendarResponse(
+                userId,
+                weekDays,
+                weekRange,
+                timeSlots,
+                medicineSchedule,
+                week,
+                today,
+                allMedicines
+        );
 
-        return "calendar";
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{user_id}/add")
-    public String addMedicine(@PathVariable (value="user_id", required=true) String user_id,
-                              @RequestParam(required = false) Integer id,
-                              @RequestParam String name,
-                              @RequestParam String dosage,
-                              @RequestParam String frequency,
-                              @RequestParam String time,
-                              @RequestParam String startDate,
-                              @RequestParam(required = false) String endDate,
-                              @RequestParam(required = false) String notes,
-                              @RequestParam(defaultValue = "0") int week) {
+    @PostMapping("/add")
+    public ResponseEntity<Medicine> addMedicine(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody MedicineRequest request) {
 
+        String userId = jwt.getSubject();
+        Medicine medicine = new Medicine(
+                request.id(),
+                userId,
+                request.name(),
+                request.dosage(),
+                request.frequency(),
+                LocalTime.parse(request.time()),
+                LocalDate.parse(request.startDate()),
+                (request.endDate() != null && !request.endDate().isEmpty())
+                        ? LocalDate.parse(request.endDate()) : null,
+                request.notes()
+        );
 
-
-        medicineCalendarService.saveMedicine(new Medicine(id, user_id, name, dosage, frequency, LocalTime.parse(time), LocalDate.parse(startDate), (endDate!= null && !endDate.isEmpty())? LocalDate.parse(endDate):null, notes));
-        return "redirect:/calendar/" + user_id + "?week=" + week;
+        medicineCalendarService.saveMedicine(medicine);
+        return ResponseEntity.status(HttpStatus.CREATED).body(medicine);
     }
 
-    @PostMapping("/{user_id}/delete/{id}")
-    public String deleteMedicine(@PathVariable String user_id,
-                                 @PathVariable String id,
-                                 @RequestParam(defaultValue = "0") int week) {
-        String[] parts = id.split("\\(");
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteMedicine(
+            @PathVariable Integer id) {
 
-        medicineCalendarService.deleteMedicine(Integer.parseInt(parts[0]));
-        return "redirect:/calendar/" + user_id + "?week=" + week;
+        medicineCalendarService.deleteMedicine(id);
+        return ResponseEntity.noContent().build();
     }
+
+    // Response DTO
+    public record CalendarResponse(
+            String userId,
+            List<LocalDate> weekDays,
+            String weekRange,
+            List<String> timeSlots,
+            Map<String, Map<String, List<Medicine>>> medicineSchedule,
+            int weekOffset,
+            LocalDate today,
+            List<Medicine> allMedicines
+    ) {}
+
+    // Request DTO
+    public record MedicineRequest(
+            Integer id,
+            String name,
+            String dosage,
+            String frequency,
+            String time,
+            String startDate,
+            String endDate,
+            String notes
+    ) {}
 }

@@ -1,12 +1,11 @@
 var keycloak = new Keycloak({
     url: 'http://localhost:8080/',
     realm: 'HealthPlatform',
-    clientId: 'vitals'
+    clientId: 'medicine'
   });
 
   keycloak.init({
       onLoad: 'check-sso',
-      checkLoginIframe: true,
       silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
   }).then((authenticated) => {
     if (authenticated) {
@@ -14,7 +13,6 @@ var keycloak = new Keycloak({
       console.log(keycloak.loadUserInfo());
       localStorage.setItem("keycloakToken", keycloak.token);
       scheduleTokenRefresh();
-      document.getElementById('container').hidden=false;
 
     } else {
       console.log("Not Authenticated!")
@@ -29,7 +27,7 @@ var keycloak = new Keycloak({
     setInterval(() => {
       keycloak.updateToken(30).then(refreshed => {
         if (refreshed) {
-          console.log(" Token refreshed");
+          console.log("🔄 Token refreshed");
         } else {
           console.log("Token still valid");
         }
