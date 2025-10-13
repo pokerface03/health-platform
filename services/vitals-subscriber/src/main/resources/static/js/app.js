@@ -3,7 +3,9 @@ const API_BASE_URL = 'http://localhost:8082/vitals';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 const HOURS_TO_FETCH = 24;
 
-const token = localStorage.getItem("keycloakToken");
+
+const tokenName = 'keycloakToken';
+
 
 let charts = {};
 let refreshTimer = null;
@@ -18,7 +20,7 @@ class VitalsAPIClient {
             try {
                 const response = await fetch(`${this.baseUrl}`,{
                     headers: {
-                        'Authorization': 'Bearer ' + token
+                        'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
                     }
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -32,7 +34,7 @@ class VitalsAPIClient {
         try {
             const response = await fetch(`${this.baseUrl}/latest`,{
                 headers: {
-                    'Authorization': 'Bearer ' + token
+                    'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
                 }
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -55,7 +57,7 @@ class VitalsAPIClient {
 
             const response = await fetch(`${this.baseUrl}/${metricName}?${params}`,{
                 headers: {
-                     'Authorization': 'Bearer ' + token
+                     'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
                 }
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -70,7 +72,7 @@ class VitalsAPIClient {
         try {
             const response = await fetch(`${this.baseUrl}/health`,{
               headers: {
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
               }
             });
             return response.ok;
@@ -331,7 +333,7 @@ window.addEventListener('beforeunload', () => {
 
 // Start the application when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('keycloakInitialized', init);
 } else {
     init();
 }

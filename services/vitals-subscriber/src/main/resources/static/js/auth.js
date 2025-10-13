@@ -1,47 +1,59 @@
-var keycloak = new Keycloak({
+var keycloak;
+
+const initKeycloak = async () => {
+  keycloak = new Keycloak({
     url: 'http://localhost:8080/',
     realm: 'HealthPlatform',
     clientId: 'vitals'
   });
 
-  keycloak.init({
-      onLoad: 'check-sso',
-      checkLoginIframe: true,
-      silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
+  await keycloak.init({
+    onLoad: 'check-sso',
+    silentCheckSsoRedirectUri: `${window.location}/silent-check-sso.html`
   }).then((authenticated) => {
     if (authenticated) {
-      console.log("Authenticated!", keycloak.token);
-      console.log(keycloak.loadUserInfo());
-      localStorage.setItem("keycloakToken", keycloak.token);
-      scheduleTokenRefresh();
-      document.getElementById('container').hidden=false;
-
+      storeToken();
+      displayContainer();
     } else {
-      console.log("Not Authenticated!")
       keycloak.login();
     }
   }).catch(() => {
     console.error("Failed to initialize Keycloak");
   });
 
-  function scheduleTokenRefresh() {
-    // Try to refresh the token every 30 seconds
-    setInterval(() => {
-      keycloak.updateToken(30).then(refreshed => {
-        if (refreshed) {
-          console.log(" Token refreshed");
-        } else {
-          console.log("Token still valid");
-        }
-        localStorage.setItem("keycloakToken", keycloak.token);
-      }).catch(() => {
-        console.error("Failed to refresh token, logging out...");
-        keycloak.logout();
-      });
-    }, 30000);
+  keycloak.onTokenExpired = () => {
+    keycloak.updateToken(-1);
   }
 
+    keycloak.onAuthLogout = () =>{
+        logout();
+    }
 
-  const logout = () => {
+  // se function
+  const event = new CustomEvent("keycloakInitialized", {
+    detail: { authenticated: keycloak.authenticated, token: keycloak.token }
+  });
+  document.dispatchEvent(event);
+}
+
+const storeToken = () => {
+  localStorage.setItem("keycloakToken", keycloak.token);
+}
+
+const removeToken = () => {
+  localStorage.removeItem("keycloakToken");
+}
+
+const displayContainer = () => {
+  document.getElementById('container').hidden=false;
+  document.getElementById('top').style.display = "flex";
+}
+
+const logout = () => {
+  removeToken();
+  if (keycloak) {
     keycloak.logout({ redirectUri: window.location.href });
   }
+}
+
+initKeycloak();

@@ -2,12 +2,12 @@
     const API_BASE_URL = 'http://localhost:8083/calendar';
     const USER_ID = 'Patient01'; // Change this to your actual user ID or get from URL/session
 
-    const token = localStorage.getItem("keycloakToken");
+    const tokenName = 'keycloakToken';
     let currentWeekOffset = 0;
     let calendarData = null;
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('keycloakInitialized', () => {
         loadCalendar();
         setupEventListeners();
     });
@@ -35,7 +35,7 @@
         try {
             const response = await fetch(`${API_BASE_URL}?week=${currentWeekOffset}`,{
               headers: {
-                'Authorization': 'Bearer ' + token
+                'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
               }
             });
 
@@ -148,7 +148,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token
+                    'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
                 },
                 body: JSON.stringify(formData)
             });
@@ -176,7 +176,7 @@
             const response = await fetch(`${API_BASE_URL}/delete/${medicineId}`, {
                 method: 'DELETE',
                  headers: {
-                    'Authorization': 'Bearer ' + token
+                    'Authorization': 'Bearer ' + localStorage.getItem(tokenName)
                  }
             });
 

@@ -15,15 +15,16 @@
             padding: 20px;
         }
         .top{
-            display: flex;
+            display: none;
             justify-content: space-between;
+            margin-bottom: 10px;
         }
         .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; }
 
         .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
         .top-nav h1 { color: #764ba2; margin: 0; }
 
-        .btn { padding: 10px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 3px; display: inline-block; border: none; cursor: pointer; font-size: 14px; }
+        .btn { padding: 10px 15px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; display: inline-block; border: none; cursor: pointer; font-size: 14px; }
         .btn:hover { background: #0056b3; }
         .btn-danger { background: #dc3545; font-size: 11px; padding: 3px 8px; }
         .btn-danger:hover { background: #c82333; }
@@ -75,11 +76,11 @@
     </style>
 </head>
 <body>
-    <div class="top">
+    <div id="top" class="top">
         <button class="btn log-out-btn" onclick="logout()">LOG OUT</button>
-        <button id="VitalsBtn" class="btn vitals-btn" href="/vitals">Vitals Monitor</button>
+        <button id="VitalsBtn" class="btn vitals-btn" onclick="window.location.href='http://localhost:8082/Vitals.html'">Vitals Monitor</button>
     </div>
-    <div id="container"  class="container">
+    <div id="container" hidden class="container">
         <div class="top-nav">
             <h1>Medicine Calendar 💊</h1>
         </div>
@@ -150,7 +151,6 @@
             <div id="medicineListContainer"></div>
         </div>
     </div>
-
     <script src="js/appMed.js"> </script>
     <script src="js/authMed.js"> </script>
 </body>
