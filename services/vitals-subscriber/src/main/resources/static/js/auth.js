@@ -2,7 +2,7 @@ var keycloak;
 
 const initKeycloak = async () => {
   keycloak = new Keycloak({
-    url: 'http://localhost:8080/',
+    url: 'http://localhost:8000/auth',
     realm: 'HealthPlatform',
     clientId: 'vitals'
   });

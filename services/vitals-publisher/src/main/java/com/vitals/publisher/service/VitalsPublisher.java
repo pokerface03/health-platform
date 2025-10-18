@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class VitalsPublisher {
 
-    private final String broker = "tcp://localhost:1883";
+    private final String broker = "tcp://192.168.1.114:1883";
     private final String clientId = "VitalsPublisher";
     private final String patientId = "patient01";
     private final Random random = new Random();

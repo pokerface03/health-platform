@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:8082/vitals';
+const API_BASE_URL = 'http://localhost:8000/vitals/vitals';
 const REFRESH_INTERVAL = 30000; // 30 seconds
 const HOURS_TO_FETCH = 24;
 

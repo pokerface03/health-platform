@@ -30,7 +30,7 @@ public class MqttSubscriberService implements MqttCallback {
    //@PostConstruct
     public void connectAndSubscribe() throws MqttException {
 
-            MqttClient client = new MqttClient("tcp://localhost:1883", "VitalsSubscriberService");
+            MqttClient client = new MqttClient("tcp://192.168.1.114:1883", "VitalsSubscriberService");
             client.setCallback(this);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
