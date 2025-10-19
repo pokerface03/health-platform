@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitals Monitor</title>
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segue UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;        
+            align-items: center;  
+            background-image: url('sea-edge-79ab30e2.png');        
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center; 
+            position: relative;
+
+        }
+
+        .header {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 40px;
+            width: 95%;   
+            max-width: 800px;
+            height: 270px;
+            transform: translateY(-100px);
+            justify-content: center;        
+            align-items: center;  
+            flex-direction: column; 
+            background: linear-gradient(135deg, #8a9ceb 10%, #c79fee 100%);           
+        }
+
+
+        .header > h1 {            
+            color: #764ba2;
+            font-size: 3em;
+            font-weight: 500;
+        }
+
+        .btn-cnt {
+            width: 95%;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            /* margin: 0 100px;  */
+            /* margin-bottom: 20px;
+            margin-top: 20px; */
+        }
+        
+        .btn {
+            border: none;
+            border-radius: 10px;
+            cursor: pointer; 
+            text-decoration: none; 
+            color: white; 
+            font-size: 20px; 
+            padding: 20px 30px; 
+
+        }
+
+        .calendar-btn, .vitals-btn {
+            background: #764ba2;
+        }
+
+        .top-right-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: white;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid #667eea;
+        }
+
+        @media screen and (max-width: 1000px) {
+            .header {
+                height: 220px;
+            }
+
+            .header > h1 {
+                font-size: 32px;
+            }
+
+            .btn {
+                font-size: 16px;
+                padding: 15px 25px;
+            }
+        }
+
+        @media screen and (max-width: 500px) {
+            .header {
+                height: 160px;
+                width: 85%;
+            }
+
+            .header > h1 {
+                font-size: 24px;
+            }
+
+            .btn {
+                font-size: 12px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="top-right-btn">Sign Up</button>
+    <div class="header">
+            <h1>Welcome to Health Platform !</h1>
+            <div class="btn-cnt">
+                <button type="button" class="btn vitals-btn" onclick="window.location.href = '/vitals'">Vitals Monitor</button>
+                <button type="button" class="btn calendar-btn" onclick="window.location.href = '/calendar'">Medicine Calendar</button>
+            </div>
+    </div>
+
+</body>
+</html>
