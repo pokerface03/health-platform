@@ -4,9 +4,9 @@ services:
     image: timescale/timescaledb:latest-pg16
     container_name: timescaledb
     environment:
-      POSTGRES_USER: health
-      POSTGRES_PASSWORD: health
-      POSTGRES_DB: vitalsdb
+      - POSTGRES_USER=${POSTGRES_USER_VITALS}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_VITALS}
+      - POSTGRES_DB=${POSTGRES_DB_VITALS}
     ports:
       - "5432:5432"
     volumes:
@@ -27,9 +27,9 @@ services:
     image: postgres:14-alpine
     container_name: medicine-db
     environment:
-      POSTGRES_PASSWORD: calendar
-      POSTGRES_USER: calendar
-      POSTGRES_DB: medicinedb
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_MEDICINE}
+      - POSTGRES_USER=${POSTGRES_USER_MEDICINE}
+      - POSTGRES_DB=${POSTGRES_DB_MEDICINE}
     ports:
       - "5434:5432"
     volumes:
@@ -41,9 +41,9 @@ services:
     image: postgres:16
     container_name: keycloak-db
     environment:
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak
-      POSTGRES_DB: keycloak
+      - POSTGRES_USER=${POSTGRES_USER_KEYCLOAK}
+      - POSTGRES_PASSWORD=&{POSTGRES_PASSWORD_KEYCLOAK}
+      - POSTGRES_DB=${POSTGRES_DB_KEYCLOAK}
     ports:
       - "5433:5432"
     volumes:
@@ -52,14 +52,17 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.4
-    command: start-dev --proxy-headers=xforwarded --hostname=http://localhost:8000/auth --proxy-trusted-addresses=172.19.0.1
+    command: start-dev 
     container_name: keycloak
     environment:
-      - KC_DB_URL=jdbc:postgresql://192.168.1.114:5433/keycloak
-      - KC_DB=postgres
-      - KC_DB_PASSWORD=keycloak
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_PROXY_HEADERS=xforwarded
+      - KC_HOSTNAME=192.168.1.114
+      - KC_HTTP_RELATIVE_PATH=/auth/
+      - KC_DB_URL=${KC_DB_URL}
+      - KC_DB=${KC_DB}
+      - KC_DB_PASSWORD=${KC_DB_PASSWORD}
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     #network_mode: host
@@ -72,11 +75,13 @@ services:
     image: nginx:alpine
     container_name: gateway
     ports:
-      - "8000:8000"
+      - "192.168.1.114:8000:8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/index.html:/etc/nginx/html/index.html
+      - ./nginx/sea-edge-79ab30e2.png:/etc/nginx/html/sea-edge-79ab30e2.png
     depends_on:
       - vitals-subscriber
       - medicine-calendar
@@ -90,12 +95,12 @@ services:
     expose:
       - "8081"
     environment:
-      MQTT_AUTOMATIC_RECONNECT: true
-      MQTT_CLEAN_SESSION: true
-      MQTT_CONNECTION_TIMEOUT: 10
-      MQTT_CLIENT_ID: VitalsPublisher
-      MQTT_HOSTNAME: 127:0:0:1
-      MQTT_PORT: 1883
+      - MQTT_AUTOMATIC_RECONNECT=true
+      - MQTT_CLEAN_SESSION=true
+      - MQTT_CONNECTION_TIMEOUT=10
+      - MQTT_CLIENT_ID=${MQTT_CLIENT_ID_PUB}
+      - MQTT_HOSTNAME=${MQTT_HOSTNAME}
+      - MQTT_PORT=${MQTT_PORT}
     depends_on:
       - mqtt-broker
     networks:
@@ -108,11 +113,14 @@ services:
     expose:
       - "8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.1.114:5432/vitalsdb
-      SPRING_DATASOURCE_USERNAME: health
-      SPRING_DATASOURCE_PASSWORD: health
-      JWT_SET_URI: http://192.168.1.114:8000/auth/realms/HealthPlatform/protocol/openid-connect/certs
-      JWT_ISSUER_URI: http://localhost:8000/auth/realms/HealthPlatform
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL_VITALS}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER_VITALS}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD_VITALS}
+      - JWT_SET_URI=${JWT_SET_URI}
+      - JWT_ISSUER_URI=${JWT_ISSUER_URI}
+      - MQTT_CLIENT_ID=${MQTT_CLIENT_ID_SUB}
+      - MQTT_HOSTNAME=${MQTT_HOSTNAME}
+      - MQTT_PORT=${MQTT_PORT}
     depends_on:
       - vitals-db
       - keycloak
@@ -127,11 +135,11 @@ services:
     expose:
       - "8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://192.168.1.114:5434/medicinedb
-      SPRING_DATASOURCE_USERNAME: calendar
-      SPRING_DATASOURCE_PASSWORD: calendar
-      JWT_SET_URI: http://192.168.1.114:8000/auth/realms/HealthPlatform/protocol/openid-connect/certs
-      JWT_ISSUER_URI: http://localhost:8000/auth/realms/HealthPlatform
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL_MEDICINE}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER_MEDICINE}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD_MEDICINE}
+      - JWT_SET_URI=${JWT_SET_URI}
+      - JWT_ISSUER_URI=${JWT_ISSUER_URI}
     depends_on:
       - medicine-db
       - keycloak

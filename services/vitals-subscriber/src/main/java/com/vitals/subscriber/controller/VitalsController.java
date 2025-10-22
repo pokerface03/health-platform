@@ -1,17 +1,12 @@
 package com.vitals.subscriber.controller;
 
 import com.vitals.subscriber.service.MqttSubscriberService;
-import org.apache.catalina.connector.Response;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.ui.Model;
 import com.vitals.subscriber.dao.VitalDao;
 import com.vitals.subscriber.record.Vital;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -24,14 +19,16 @@ import java.util.Map;
 @RequestMapping("/vitals")
 public class VitalsController {
 
-    //@Autowired
     private final VitalDao vitalDao;
     private final MqttSubscriberService mqttSubscriberService;
 
-    public VitalsController(VitalDao vitalDao) throws MqttException {
+
+    public VitalsController(VitalDao vitalDao, MqttSubscriberService mqttSubscriberService) throws MqttException {
         this.vitalDao = vitalDao;
-        this.mqttSubscriberService = new MqttSubscriberService(vitalDao);
+        this.mqttSubscriberService = mqttSubscriberService;
+        mqttSubscriberService.setVitalDao(vitalDao);
         mqttSubscriberService.connectAndSubscribe();
+
     }
 
     @GetMapping("")
@@ -45,7 +42,6 @@ public class VitalsController {
     @ResponseBody
     public List<Vital> getLatestVitals(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
-        System.out.println("userId="+userId);
         return vitalDao.getLatestVitals(userId);
     }
 

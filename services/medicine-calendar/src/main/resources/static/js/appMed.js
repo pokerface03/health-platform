@@ -1,5 +1,5 @@
     // Configuration
-    const API_BASE_URL = 'http://localhost:8000/calendar/calendar';
+    const API_BASE_URL = window.location.origin +'/calendar/calendar';
     const USER_ID = 'Patient01'; // Change this to your actual user ID or get from URL/session
 
     const tokenName = 'keycloakToken';

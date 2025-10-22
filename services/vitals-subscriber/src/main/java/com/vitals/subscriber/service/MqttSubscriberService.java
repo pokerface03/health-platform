@@ -4,9 +4,8 @@ import com.vitals.subscriber.record.*;
 import com.vitals.subscriber.dao.VitalDao;
 import jakarta.annotation.PostConstruct;
 import org.eclipse.paho.client.mqttv3.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -14,12 +13,20 @@ import java.time.Instant;
 @Service
 public class MqttSubscriberService implements MqttCallback {
 
-    //@Autowired
-    private final VitalDao vitalDao;
+    private VitalDao vitalDao;
     private String UserId;
+    private String broker;
 
+    @Value("${mqtt.hostname}")
+    private String hostname;
 
-    public MqttSubscriberService(VitalDao vitalDao) {
+    @Value("${mqtt.port}")
+    private String port;
+
+    @Value("${mqtt.clientId}")
+    private String clientId;
+
+    public void setVitalDao(VitalDao vitalDao) {
         this.vitalDao =  vitalDao;
     }
 
@@ -30,7 +37,8 @@ public class MqttSubscriberService implements MqttCallback {
    //@PostConstruct
     public void connectAndSubscribe() throws MqttException {
 
-            MqttClient client = new MqttClient("tcp://192.168.1.114:1883", "VitalsSubscriberService");
+            broker = "tcp://" + hostname + ":" + port;
+            MqttClient client = new MqttClient(broker, clientId);
             client.setCallback(this);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
@@ -38,6 +46,7 @@ public class MqttSubscriberService implements MqttCallback {
             client.subscribe("vitals/#");
             //client.setKeepAliveInterval(30);
             System.out.println("Subscribed to vitals/+/+");
+            System.out.println(" Connected to MQTT broker at " + broker);
 
     }
 
@@ -64,7 +73,7 @@ public class MqttSubscriberService implements MqttCallback {
                 Vital vital = new Vital(null, userId, ts, metricName, value);
 
                 vitalDao.addVital(vital);
-                System.out.println("📥 Saved: " + userId + "/" + metricName + " = " + value);
+                System.out.println(" Saved: " + userId + "/" + metricName + " = " + value);
             }
     }
 

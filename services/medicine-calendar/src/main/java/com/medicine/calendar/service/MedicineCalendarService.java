@@ -2,7 +2,6 @@ package com.medicine.calendar.service;
 
 import com.medicine.calendar.dao.MedicineDao;
 import com.medicine.calendar.record.Medicine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -12,7 +11,6 @@ import java.util.Optional;
 @Service
 public class MedicineCalendarService {
 
-    //@Autowired
     private final MedicineDao medicineDao;
 
     public MedicineCalendarService(MedicineDao medicineDao) {

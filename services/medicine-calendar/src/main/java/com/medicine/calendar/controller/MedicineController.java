@@ -20,7 +20,6 @@ import java.util.*;
 
 public class MedicineController {
 
-    //@Autowired
     private final MedicineCalendarService medicineCalendarService;
 
     public MedicineController(MedicineCalendarService medicineCalendarService) {
@@ -58,7 +57,7 @@ public class MedicineController {
         // Get all medicines
         List<Medicine> allMedicines = medicineCalendarService.getAllMedicines(userId);
 
-        // Build schedule: Map<LocalDate, Map<String, List<Medicine>>>
+        // Build schedule
         Map<String, Map<String, List<Medicine>>> medicineSchedule = new HashMap<>();
 
         for (LocalDate day : weekDays) {

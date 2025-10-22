@@ -1,6 +1,7 @@
 package com.vitals.publisher.service;
 
 import org.eclipse.paho.client.mqttv3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -14,9 +15,18 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class VitalsPublisher {
 
-    private final String broker = "tcp://192.168.1.114:1883";
-    private final String clientId = "VitalsPublisher";
-    private final String patientId = "patient01";
+    @Value("${mqtt.hostname}")
+    private String hostname;
+
+    @Value("${mqtt.port}")
+    private String port;
+
+    private String broker;
+
+    @Value("${mqtt.clientId}")
+    private String clientId;
+
+    //private final String patientId = "patient01";
     private final Random random = new Random();
 
     private MqttClient client;
@@ -26,13 +36,15 @@ public class VitalsPublisher {
     public void start() {
 
         try {
+            broker = "tcp://" + hostname + ":" + port;
+            //broker = System.getenv().getOrDefault("MQTT_BROKER", "tcp://192.168.1.114:1883");
             client = new MqttClient(broker, clientId);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             options.setAutomaticReconnect(true);
             client.connect(options);
 
-            System.out.println("✅ Connected to MQTT broker at " + broker);
+            System.out.println(" Connected to MQTT broker at " + broker);
 
             // Start publishing every 1 second
             scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -68,7 +80,7 @@ public class VitalsPublisher {
             publish("vitals/" + patientId + "/glucose", now + "," + glucose);
             publish("vitals/" + patientId + "/weight", now + "," + weight);*/
 
-            System.out.println("📤 Published vitals at " + now);
+            System.out.println(" Published vitals at " + now);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,7 +100,7 @@ public class VitalsPublisher {
                 scheduler.shutdown();
             }
             if (client != null && client.isConnected()) {
-                System.out.println("🛑 Disconnecting from MQTT broker...");
+                System.out.println(" Disconnecting from MQTT broker...");
                 client.disconnect();
                 client.close();
             }
