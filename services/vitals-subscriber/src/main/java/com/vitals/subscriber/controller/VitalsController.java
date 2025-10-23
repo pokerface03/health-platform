@@ -1,6 +1,7 @@
 package com.vitals.subscriber.controller;
 
 import com.vitals.subscriber.service.MqttSubscriberService;
+import com.vitals.subscriber.service.VitalsSubscriberService;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.vitals.subscriber.dao.VitalDao;
@@ -19,14 +20,13 @@ import java.util.Map;
 @RequestMapping("/vitals")
 public class VitalsController {
 
-    private final VitalDao vitalDao;
+    private final VitalsSubscriberService vitalsSubscriberService;
     private final MqttSubscriberService mqttSubscriberService;
 
 
-    public VitalsController(VitalDao vitalDao, MqttSubscriberService mqttSubscriberService) throws MqttException {
-        this.vitalDao = vitalDao;
+    public VitalsController(VitalsSubscriberService vitalsSubscriberService, MqttSubscriberService mqttSubscriberService) throws MqttException {
+        this.vitalsSubscriberService = vitalsSubscriberService;
         this.mqttSubscriberService = mqttSubscriberService;
-        mqttSubscriberService.setVitalDao(vitalDao);
         mqttSubscriberService.connectAndSubscribe();
 
     }
@@ -42,7 +42,7 @@ public class VitalsController {
     @ResponseBody
     public List<Vital> getLatestVitals(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
-        return vitalDao.getLatestVitals(userId);
+        return vitalsSubscriberService.getLatestVitals(userId);
     }
 
     @GetMapping("/{metricName}")
@@ -60,7 +60,7 @@ public class VitalsController {
 
         String userId = jwt.getSubject();
 
-        return vitalDao.getVitals(userId, metricName, fromTs, toTs);
+        return vitalsSubscriberService.getVitals(userId, metricName, fromTs, toTs);
     }
 
     @GetMapping("/data")
@@ -76,7 +76,7 @@ public class VitalsController {
                 : Timestamp.from(Instant.now());
 
         String userId = jwt.getSubject();
-        return vitalDao.getAllVitals(userId, fromTs, toTs);
+        return vitalsSubscriberService.getAllVitals(userId, fromTs, toTs);
     }
 
     @GetMapping("/health")

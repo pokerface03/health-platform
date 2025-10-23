@@ -13,7 +13,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class VitalsPublisher {
+public class VitalsPublisherService {
 
     @Value("${mqtt.hostname}")
     private String hostname;

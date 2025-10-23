@@ -17,6 +17,6 @@ public interface VitalDao {
     List<Vital> getVitals(String userId, String metricName, Timestamp from, Timestamp to);
     List<Vital> getAllVitals(String userId, Timestamp from, Timestamp to);
     List<String> getMetrics(String userId);
-    public List<Vital> getLatestVitals(String userId);
+    List<Vital> getLatestVitals(String userId);
 
 }

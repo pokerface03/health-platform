@@ -13,7 +13,7 @@ import java.time.Instant;
 @Service
 public class MqttSubscriberService implements MqttCallback {
 
-    private VitalDao vitalDao;
+    private final VitalDao vitalDao;
     private String UserId;
     private String broker;
 
@@ -26,7 +26,7 @@ public class MqttSubscriberService implements MqttCallback {
     @Value("${mqtt.clientId}")
     private String clientId;
 
-    public void setVitalDao(VitalDao vitalDao) {
+    public MqttSubscriberService(VitalDao vitalDao) {
         this.vitalDao =  vitalDao;
     }
 
