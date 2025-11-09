@@ -2,3 +2,6 @@ mosquitto
 db/vitalsdb
 db/medicinedb
 .env
+nginx/fullchain.pem
+nginx/privkey.pem
+
