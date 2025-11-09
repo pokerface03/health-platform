@@ -52,7 +52,7 @@ const displayContainer = () => {
 const logout = () => {
   removeToken();
   if (keycloak) {
-    keycloak.logout({ redirectUri: window.location.href });
+    keycloak.logout({ redirectUri: window.location });
   }
 }
 

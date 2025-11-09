@@ -14,18 +14,28 @@ services:
       - ./db/init/vitals:/docker-entrypoint-initdb.d/
     networks:
       - health-platform-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
 
 
   mqtt-broker:
-    image: eclipse-mosquitto:2
+    image: pokerface03/healthplatform:mosquitto
     container_name: mosquitto
     expose:
       - "1883"
       - "9001"
-    volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
     networks:
       - health-platform-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+
 
   medicine-db:
     image: postgres:14-alpine
@@ -41,6 +51,11 @@ services:
       - ./db/init/medicine:/docker-entrypoint-initdb.d/
     networks:
       - health-platform-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
 
 
   keycloak-db:
@@ -48,19 +63,25 @@ services:
     container_name: keycloak-db
     environment:
       - POSTGRES_USER=${POSTGRES_USER_KEYCLOAK}
-      - POSTGRES_PASSWORD=&{POSTGRES_PASSWORD_KEYCLOAK}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_KEYCLOAK}
       - POSTGRES_DB=${POSTGRES_DB_KEYCLOAK}
     expose:
       - "5432"
     volumes:
-      - /home/fofi/postgresql/keycloak/data:/var/lib/postgresql/data
+      - ./db/keycloak/data:/var/lib/postgresql/data
     networks:
       - health-platform-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
 
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.4
-    command: start-dev 
+    command: start-dev
     container_name: keycloak
     environment:
       - KC_PROXY_HEADERS=xforwarded
@@ -73,29 +94,37 @@ services:
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
     expose:
       - "8080"
-    #network_mode: host
     depends_on:
       - keycloak-db
     networks:
       - health-platform-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+
 
   gateway:
-    image: nginx:alpine
+    image: pokerface03/healthplatform:nginx
     container_name: gateway
     ports:
       - "80:80"
+      - "443:443"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/index.html:/etc/nginx/html/index.html
-      - ./nginx/sea-edge-79ab30e2.png:/etc/nginx/html/sea-edge-79ab30e2.png
     depends_on:
       - vitals-subscriber
       - medicine-calendar
       - keycloak
     networks:
       - health-platform-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+
 
   vitals-publisher:
     image: pokerface03/healthplatform:vitals-publisher_1.1
@@ -114,9 +143,15 @@ services:
     networks:
       - health-platform-network
     restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+
 
   vitals-subscriber:
-    image: pokerface03/healthplatform:vitals-subscriber_1.1
+    image: pokerface03/healthplatform:vitals-subscriber_1.2
     container_name: vitals-subscriber
     expose:
       - "8082"
@@ -136,6 +171,12 @@ services:
     networks:
       - health-platform-network
     restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+
 
   medicine-calendar:
     image: pokerface03/healthplatform:medicine-calendar_1.1
@@ -154,6 +195,11 @@ services:
     networks:
       - health-platform-network
     restart: unless-stopped
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
 
 
 
