@@ -7,24 +7,23 @@
     <title>Health Platform</title>
     <style>
         * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segue UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             padding: 20px;
             display: flex;
-            justify-content: center;        
-            align-items: center;  
-            background-image: url('sea-edge-79ab30e2.png');        
+            justify-content: center;
+            align-items: center;
+            background-image: url('sea-edge-79ab30e2.png');
             background-size: cover;
             background-attachment: fixed;
-            background-position: center; 
+            background-position: center;
             position: relative;
-
         }
 
         .header {
@@ -32,18 +31,17 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             display: flex;
             gap: 40px;
-            width: 95%;   
+            width: 95%;
             max-width: 800px;
             height: 270px;
             transform: translateY(-100px);
-            justify-content: center;        
-            align-items: center;  
-            flex-direction: column; 
-            background: linear-gradient(135deg, #8a9ceb 10%, #c79fee 100%);           
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background: linear-gradient(135deg, #8a9ceb 10%, #c79fee 100%);
         }
 
-
-        .header > h1 {            
+        .header > h1 {
             color: #764ba2;
             font-size: 3em;
             font-weight: 500;
@@ -54,20 +52,16 @@
             display: flex;
             align-items: center;
             justify-content: space-evenly;
-            /* margin: 0 100px;  */
-            /* margin-bottom: 20px;
-            margin-top: 20px; */
         }
-        
+
         .btn {
             border: none;
             border-radius: 10px;
-            cursor: pointer; 
-            text-decoration: none; 
-            color: white; 
-            font-size: 20px; 
-            padding: 20px 30px; 
-
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-size: 20px;
+            padding: 20px 30px;
         }
 
         .calendar-btn, .vitals-btn {
@@ -90,15 +84,69 @@
             border: 2px solid #667eea;
         }
 
+        .top-right-btn:hover {
+            background-color: #667eea;
+            color: white;
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 80%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: popIn 0.3s ease;
+            border: 2px solid #667eea;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .close-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover {
+            background: #5568c5;
+        }
+
         @media screen and (max-width: 1000px) {
             .header {
                 height: 220px;
             }
-
             .header > h1 {
                 font-size: 32px;
             }
-
             .btn {
                 font-size: 16px;
                 padding: 15px 25px;
@@ -110,11 +158,9 @@
                 height: 160px;
                 width: 85%;
             }
-
             .header > h1 {
                 font-size: 24px;
             }
-
             .btn {
                 font-size: 12px;
                 padding: 10px 20px;
@@ -123,14 +169,38 @@
     </style>
 </head>
 <body>
-    <button class="top-right-btn">Info</button>
-    <div class="header">
-            <h1>Welcome to Health Platform !</h1>
-            <div class="btn-cnt">
-                <button type="button" class="btn vitals-btn" onclick="window.location.href = '/vitals'">Vitals Monitor</button>
-                <button type="button" class="btn calendar-btn" onclick="window.location.href = '/calendar'">Medicine Calendar</button>
-            </div>
-    </div>
+<button class="top-right-btn" id="infoBtn">Info</button>
 
+<div class="header">
+    <h1>Welcome to Health Platform!</h1>
+    <div class="btn-cnt">
+        <button type="button" class="btn vitals-btn" onclick="window.location.href = '/vitals'">Vitals Monitor</button>
+        <button type="button" class="btn calendar-btn" onclick="window.location.href = '/calendar'">Medicine Calendar</button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="infoModal" class="modal">
+    <div class="modal-content">
+        <h2>About Me</h2>
+        <p>Hello! I'm <strong>Foteini Parmakli</strong>, the developer of this Health Platform.</p>
+        <p>I’m a student in <strong>University of West Attica</strong>, passionate about health technology and creating user-friendly digital solutions, that help people monitor and improve their well-being.</p>
+        <p>This platform was created as a part of my master's degree thesis.</p>
+        <p>Feel free to reach out at <a href="mailto: fotini.parmakli@gmail.com">fotini.parmakli@gmail.com</a>.</p>
+        <button class="close-btn" id="closeModal">Close</button>
+    </div>
+</div>
+
+<script>
+    const infoBtn = document.getElementById('infoBtn');
+    const modal = document.getElementById('infoModal');
+    const closeModal = document.getElementById('closeModal');
+
+    infoBtn.onclick = () => modal.style.display = 'flex';
+    closeModal.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => {
+        if (event.target === modal) modal.style.display = 'none';
+    };
+</script>
 </body>
 </html>

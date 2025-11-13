@@ -2,7 +2,6 @@
 services:
   vitals-db:
     image: timescale/timescaledb:latest-pg16
-    container_name: timescaledb
     environment:
       - POSTGRES_USER=${POSTGRES_USER_VITALS}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_VITALS}
@@ -10,8 +9,13 @@ services:
     expose:
       - "5432"
     volumes:
-      - ./db/vitalsdb/data:/var/lib/postgresql/data
-      - ./db/init/vitals:/docker-entrypoint-initdb.d/
+      - type: bind
+        source: ./db/vitalsdb/data
+        target: /var/lib/postgresql/data
+      - type: bind
+        source: ./db/init/vitals
+        target: /docker-entrypoint-initdb.d
+        read_only: true
     networks:
       - health-platform-network
     deploy:
@@ -19,12 +23,15 @@ services:
       placement:
         constraints:
           - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
 
 
-  mqtt-broker:
+  mosquitto:
     image: pokerface03/healthplatform:mosquitto
-    container_name: mosquitto
     expose:
       - "1883"
       - "9001"
@@ -35,11 +42,12 @@ services:
       placement:
         constraints:
           - node.role == worker
+      restart_policy:
+        condition: on-failure
 
 
   medicine-db:
     image: postgres:14-alpine
-    container_name: medicine-db
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_MEDICINE}
       - POSTGRES_USER=${POSTGRES_USER_MEDICINE}
@@ -47,8 +55,13 @@ services:
     expose:
       - "5432"
     volumes:
-      - ./db/medicinedb/data:/var/lib/postgresql/data
-      - ./db/init/medicine:/docker-entrypoint-initdb.d/
+      - type: bind
+        source: ./db/medicinedb/data
+        target: /var/lib/postgresql/data
+      - type: bind
+        source: ./db/init/medicine
+        target: /docker-entrypoint-initdb.d
+        read_only: true
     networks:
       - health-platform-network
     deploy:
@@ -56,11 +69,14 @@ services:
       placement:
         constraints:
           - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
 
   keycloak-db:
     image: postgres:16
-    container_name: keycloak-db
     environment:
       - POSTGRES_USER=${POSTGRES_USER_KEYCLOAK}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_KEYCLOAK}
@@ -68,7 +84,9 @@ services:
     expose:
       - "5432"
     volumes:
-      - ./db/keycloak/data:/var/lib/postgresql/data
+      - type: bind
+        source: ./db/keycloak/data
+        target: /var/lib/postgresql/data
     networks:
       - health-platform-network
     deploy:
@@ -76,13 +94,15 @@ services:
       placement:
         constraints:
           - node.role == manager
-
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.4
     command: start-dev
-    container_name: keycloak
     environment:
       - KC_PROXY_HEADERS=xforwarded
       - KC_HOSTNAME=${KC_HOSTNAME}
@@ -92,27 +112,44 @@ services:
       - KC_DB_PASSWORD=${KC_DB_PASSWORD}
       - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME}
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      # Optional: restrict JVM heap to prevent memory starvation for threads
+      - JAVA_OPTS=-Xms256m -Xmx512m
     expose:
       - "8080"
     depends_on:
       - keycloak-db
     networks:
       - health-platform-network
+    ulimits:
+      nproc: 65535        # allow many threads/processes
+      nofile: 65535       # allow many open files/sockets
     deploy:
+      mode: replicated
       replicas: 1
       placement:
+        max_replicas_per_node: 1
         constraints:
           - node.role == worker
+      resources:
+        limits:
+          cpus: '1.50'
+          memory: 1024M
+          pids: 4096        # allow JVM to spawn GC + worker threads
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
 
 
   gateway:
-    image: pokerface03/healthplatform:nginx
-    container_name: gateway
+    image: pokerface03/healthplatform:nginx2
     ports:
       - "80:80"
       - "443:443"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       - vitals-subscriber
       - medicine-calendar
@@ -124,11 +161,12 @@ services:
       placement:
         constraints:
           - node.role == worker
+      restart_policy:
+        condition: on-failure
 
 
   vitals-publisher:
     image: pokerface03/healthplatform:vitals-publisher_1.1
-    container_name: vitals-publisher
     expose:
       - "8081"
     environment:
@@ -148,11 +186,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
 
   vitals-subscriber:
     image: pokerface03/healthplatform:vitals-subscriber_1.2
-    container_name: vitals-subscriber
     expose:
       - "8082"
     environment:
@@ -176,11 +217,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
 
   medicine-calendar:
     image: pokerface03/healthplatform:medicine-calendar_1.1
-    container_name: medicine-calendar
     expose:
       - "8083"
     environment:
@@ -200,10 +244,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
 
 
 networks:
   health-platform-network:
-    driver: bridge
+    driver: overlay
     internal: false
