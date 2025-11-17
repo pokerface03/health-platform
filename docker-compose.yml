@@ -177,7 +177,7 @@ services:
       - MQTT_HOSTNAME=${MQTT_HOSTNAME}
       - MQTT_PORT=${MQTT_PORT}
     depends_on:
-      - mqtt-broker
+      - mosquitto
     networks:
       - health-platform-network
     restart: unless-stopped
@@ -208,7 +208,7 @@ services:
     depends_on:
       - vitals-db
       - keycloak
-      - mqtt-broker
+      - mosquitto
     networks:
       - health-platform-network
     restart: unless-stopped
