@@ -23,6 +23,14 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+          pids: 1024
+        reservations:
+          cpus: '0.05'
+          memory: 64M
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -42,6 +50,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+          pids: 1024
+        reservations:
+          cpus: '0.05'
+          memory: 32M
       restart_policy:
         condition: on-failure
 
@@ -69,6 +85,14 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+          pids: 1024
+        reservations:
+          cpus: '0.05'
+          memory: 64M
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -94,6 +118,14 @@ services:
       placement:
         constraints:
           - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+          pids: 1024
+        reservations:
+          cpus: '0.05'
+          memory: 64M
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -161,6 +193,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+          pids: 1024
+        reservations:
+          cpus: '0.05'
+          memory: 32M
       restart_policy:
         condition: on-failure
 
@@ -186,6 +226,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+          pids: 1024
+        reservations:
+          cpus: '0.05'
+          memory: 64M
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -217,6 +265,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+          pids: 2048
+        reservations:
+          cpus: '0.1'
+          memory: 128M
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -244,6 +300,14 @@ services:
       placement:
         constraints:
           - node.role == worker
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+          pids: 2048
+        reservations:
+          cpus: '0.1'
+          memory: 128M
       restart_policy:
         condition: on-failure
         delay: 5s
